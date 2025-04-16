@@ -42,19 +42,16 @@
                             <i class="fas fa-info-circle"></i>
                         </button>
                     </h2>
-                    <p class="current-status" id="current-situation">
+                    <p class="current-status">
                         <i class="fas fa-circle-info"></i>
-                        <span id="situation-text">Stato di allerta in corso</span>
+                        <span id="situation-text"></span>
                     </p>
                 </div>
             </div>
             
-            <div class="grid-container">
-                <div id="alert-details" class="grid-col">
-                    <h3><i class="fas fa-map-marked-alt"></i> Zone di Allerta</h3>
-                    <ul id="zone-alerts" class="zone-list"></ul>
-                </div>
-                <div id="weather-details" class="grid-col"></div>
+            <div id="alert-details">
+                <h3><i class="fas fa-map-marked-alt"></i> Zone di Allerta</h3>
+                <ul id="zone-alerts" class="zone-list"></ul>
             </div>
             
             <div id="loading" class="hidden">
@@ -73,6 +70,7 @@
     <footer>
         <p>&copy; 2025 - Web App Allerta Meteo</p>
     </footer>
+    
     <div id="legendModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -83,6 +81,7 @@
             </div>
             <div class="modal-body">
                 <div class="legend-items">
+                    <!-- Legend items for alert levels -->
                     <div class="legend-item verde">
                         <span class="alert-badge verde">Verde</span>
                         <div class="legend-description">
