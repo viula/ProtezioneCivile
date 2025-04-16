@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allerta Meteo ARPA Piemonte</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <ul>
+            <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="credits.html"><i class="fas fa-user"></i> Credits</a></li>
+        </ul>
+    </nav>
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1><i class="fas fa-shield-alt"></i> Zone del Piemonte - Allerta Meteo ARPA</h1>
+            </div>
+            <div class="update-info">
+                <div class="info-item">
+                    <i class="fas fa-clock"></i>
+                    <div class="info-text">
+                        <strong>Data Emissione:</strong>
+                        <span id="emission-date"></span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="info-text">
+                        <strong>Stato Generale:</strong>
+                        <span id="general-status"></span>
+                    </div>
+                </div>
+                <!-- <div class="info-item">
+                    <i class="fas fa-play-circle"></i>
+                    <div class="info-text">
+                        <strong>Inizio validità:</strong>
+                        <span id="onset"></span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-stop-circle"></i>
+                    <div class="info-text">
+                        <strong>Fine validità:</strong>
+                        <span id="expires"></span>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+    </header>
+    <!-- <div class="alert-note" id="alert-note"></div> -->
+    <main>
+        <section id="alert-container">
+            <div class="section-header">
+                <div class="situation-summary">
+                    <h2>
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Situazione Allerta Attuale
+                        <button class="info-button" onclick="toggleLegendModal()">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </h2>
+                    <p class="current-status">
+                        <i class="fas fa-circle-info"></i>
+                        <span id="situation-text"></span>
+                    </p>
+                </div>
+            </div>
+            
+            <div id="alert-details">
+                <h3><i class="fas fa-map-marked-alt"></i> Zone di Allerta</h3>
+                <ul id="zone-alerts" class="zone-list"></ul>
+            </div>
+            
+            <div id="loading" class="hidden">
+                <i class="fas fa-spinner fa-spin"></i> Caricamento dati in corso...
+            </div>
+            <div id="error" class="hidden">
+                <i class="fas fa-exclamation-circle"></i> Errore nel caricamento dei dati.
+            </div>
+        </section>
+        
+        <section id="disclaimer">
+            <p><i class="fas fa-info-circle"></i> Fonte dati: <a href="https://www.arpa.piemonte.it/" target="_blank">ARPA Piemonte</a>. 
+            Le informazioni potrebbero non essere in tempo reale.</p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 - Web App Allerta Meteo</p>
+    </footer>
+    
+    <div id="legendModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Legenda Livelli di Allerta</h3>
+                <button class="close-button" onclick="toggleLegendModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="legend-items">
+                    <!-- Legend items for alert levels -->
+                    <div class="legend-item verde">
+                        <span class="alert-badge verde">Verde</span>
+                        <div class="legend-description">
+                            <p>Condizioni ordinarie: fenomeni naturali che non prevedono danni.</p>
+                        </div>
+                    </div>
+                    <div class="legend-item giallo">
+                        <span class="alert-badge giallo">Giallo</span>
+                        <div class="legend-description">
+                            <p>Potenziali pericoli: possibili danni localizzati.</p>
+                            <ul>
+                                <li>Precipitazioni: 30-60 mm/24h</li>
+                                <li>Temporali: localmente forti</li>
+                                <li>Vento: 50-80 km/h</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="legend-item arancione">
+                        <span class="alert-badge arancione">Arancione</span>
+                        <div class="legend-description">
+                            <p>Pericoli diffusi: probabili danni estesi.</p>
+                            <ul>
+                                <li>Precipitazioni: 60-100 mm/24h</li>
+                                <li>Temporali: forti e diffusi</li>
+                                <li>Vento: 80-100 km/h</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="legend-item rosso">
+                        <span class="alert-badge rosso">Rosso</span>
+                        <div class="legend-description">
+                            <p>Pericoli gravi: danni diffusi e ingenti.</p>
+                            <ul>
+                                <li>Precipitazioni: >100 mm/24h</li>
+                                <li>Temporali: molto forti e persistenti</li>
+                                <li>Vento: >100 km/h</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
