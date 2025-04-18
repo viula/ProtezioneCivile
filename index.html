@@ -34,7 +34,7 @@
                         <span id="general-status"></span>
                     </div>
                 </div>
-                <!-- <div class="info-item">
+                <div class="info-item">
                     <i class="fas fa-play-circle"></i>
                     <div class="info-text">
                         <strong>Inizio validità:</strong>
@@ -47,57 +47,36 @@
                         <strong>Fine validità:</strong>
                         <span id="expires"></span>
                     </div>
-                </div> -->
+                </div>
             </div>
         </div>
     </header>
     
-    <!-- <div class="alert-note" id="alert-note"></div> -->
-    
     <main>
         <section id="zone-l-details">
-            <!-- <div class="section-header level-giallo">
-                <h2><i class="fas fa-map-marker-alt"></i> Dettagli Zona L</h2>
-                <div class="zone-info card zone-info-box">
-                    <h3><i class="fas fa-info-circle"></i> Informazioni Generali</h3>
-                    <p><i class="fas fa-align-left"></i> <strong>Descrizione:</strong> Area metropolitana e pianura torinese</p>
-                    <p><i class="fas fa-users"></i> <strong>Popolazione:</strong> 1.500.000</p>
-                    <p><i class="fas fa-map"></i> <strong>Province:</strong> Torino</p>
-                    <p><i class="fas fa-exclamation-triangle"></i> <strong>Rischi principali:</strong> Temporali, Allagamenti</p>
-                    <p><i class="fas fa-mountain"></i> <strong>Altitudine:</strong> 200-350m</p>
+            <div class="section-header">
+                <div class="situation-summary">
+                    <h2>
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Situazione Allerta Attuale
+                    </h2>
+                    <p class="current-status">
+                        <span id="situation-text"></span>
+                    </p>
                 </div>
-            </div> -->
-
+            </div>
             <div class="zone-status card">
                 <div class="current-alert">
-                    <h3><i class="fas fa-bolt"></i> Livello di Allerta Attuale</h3>
-                    <div class="giallo">
-                        <span id="zone-l-alert-level" class="alert-badge"></span>
-                    </div>
-                    <div class="alert-description" id="zone-l-alert-description"></div>
-                </div>
-                
-                <div class="recommendations alert-level-info giallo">
-                    <h3><i class="fas fa-exclamation-circle"></i> Raccomandazioni</h3>
-                    <div id="zone-l-recommendations"></div>
-                </div>
-
-                <div class="weather-info">
-                    <h3><i class="fas fa-cloud-sun-rain"></i> Condizioni Meteo</h3>
-                    <div class="weather-grid">
-                        <div class="weather-card">
-                            <p><i class="fas fa-cloud-rain"></i> <span id="precipitation"></span></p>
-                            <p><i class="fas fa-bolt"></i> <span id="thunderstorms"></span></p>
-                            <p><i class="fas fa-wind"></i> <span id="wind"></span></p>
-                        </div>
-                        <div class="weather-card">
-                            <p><i class="fas fa-temperature-high"></i> <strong>Temperatura:</strong> 18.2°C</p>
-                            <p><i class="fas fa-tint"></i> <strong>Umidità:</strong> 68%</p>
-                            <p><i class="fas fa-cloud"></i> <strong>Copertura nuvolosa:</strong> 70%</p>
-                        </div>
+                    <h3>
+                        <div class="alert-description" id="zone-l-alert-description"></div>
+                        <button class="info-button" onclick="toggleLegendModal()">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </h3>
+                    <div id="zone-l-alert-types">
+                        <!-- Alert types will be dynamically added here -->
                     </div>
                 </div>
-
             </div>
             
             <div id="loading" class="hidden">
@@ -117,6 +96,46 @@
     <footer>
         <p>&copy; 2025 - Web App Allerta Meteo</p>
     </footer>
+    
+    <div id="legendModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Legenda Livelli di Allerta</h3>
+                <button class="close-button" onclick="toggleLegendModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="legend-items">
+                    <!-- Legend items for alert levels -->
+                    <div class="legend-item verde">
+                        <span class="alert-badge verde">Verde</span>
+                        <div class="legend-description">
+                            <p>Condizioni ordinarie: fenomeni naturali che non prevedono danni.</p>
+                        </div>
+                    </div>
+                    <div class="legend-item giallo">
+                        <span class="alert-badge giallo">Giallo</span>
+                        <div class="legend-description">
+                            <p>Potenziali pericoli: possibili danni localizzati.</p>
+                        </div>
+                    </div>
+                    <div class="legend-item arancione">
+                        <span class="alert-badge arancione">Arancione</span>
+                        <div class="legend-description">
+                            <p>Pericoli diffusi: probabili danni estesi.</p>
+                        </div>
+                    </div>
+                    <div class="legend-item rosso">
+                        <span class="alert-badge rosso">Rosso</span>
+                        <div class="legend-description">
+                            <p>Pericoli gravi: danni diffusi e ingenti.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script src="script.js"></script>
 </body>
