@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const CONFIG = {
         xmlFeedUrl: 'https://www.arpa.piemonte.it/export/xmlcap/allerta.xml',
-        corsProxyUrl: 'https://cors-anywhere.herokuapp.com/'
+        corsProxyUrls: [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://cors-anywhere.herokuapp.com/'
+        ],
+        retryDelay: 5000,
+        maxRetries: 3
     };
 
     const elements = {
@@ -88,18 +94,33 @@ document.addEventListener('DOMContentLoaded', function() {
         return name.replace(/Piem-([A-Z])/g, 'Zona $1');
     }
 
-    async function fetchDashboardData() {
+    function createXHR() {
+        return new XMLHttpRequest();
+    }
+
+    async function fetchDashboardData(retryCount = 0, proxyIndex = 0) {
         showLoading(true);
         try {
-            const url = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-                ? CONFIG.corsProxyUrl + CONFIG.xmlFeedUrl
-                : CONFIG.xmlFeedUrl;
+            // Try different CORS proxies in sequence
+            const proxyUrl = CONFIG.corsProxyUrls[proxyIndex] + encodeURIComponent(CONFIG.xmlFeedUrl);
+            const response = await fetch(proxyUrl, {
+                headers: {
+                    'Accept': 'application/xml',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
 
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
             const xmlText = await response.text();
             const parser = new DOMParser();
             const xml = parser.parseFromString(xmlText, "application/xml");
+
+            if (xml.querySelector('parsererror')) {
+                throw new Error('XML parsing error');
+            }
 
             // Update header information
             elements.emissionDate.textContent = xml.querySelector('sent')?.textContent || '';
@@ -107,180 +128,203 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.onset.textContent = xml.querySelector('info > onset')?.textContent || '';
             elements.expires.textContent = xml.querySelector('info > expires')?.textContent || '';
 
-            // After parsing the XML, create a summary of alerts
-            const areas = xml.querySelectorAll('area');
-            const alertSummary = {};
-            let maxAlertLevel = 'Verde';
-
-            // Process all areas to build summary
-            areas.forEach(area => {
-                const zoneName = formatZoneName(area.querySelector('areaDesc')?.textContent || '');
-                const alertLevel = area.querySelector('parameter[valueName="alert_level"] value')?.textContent || 'Verde';
-
-                if (!alertSummary[alertLevel]) {
-                    alertSummary[alertLevel] = [];
-                }
-                alertSummary[alertLevel].push(zoneName);
-
-                // Update max alert level
-                const alertOrder = { 'Verde': 0, 'Giallo': 1, 'Arancione': 2, 'Rosso': 3 };
-                if (alertOrder[alertLevel] > alertOrder[maxAlertLevel]) {
-                    maxAlertLevel = alertLevel;
-                }
-            });
-
-            // Create summary text
-            let summaryText = `<strong>Livello massimo di allerta: <span class="alert-level ${maxAlertLevel.toLowerCase()}">${maxAlertLevel}</span></strong><br><br>`;
-            
-            const alertLevels = ['Rosso', 'Arancione', 'Giallo', 'Verde'];
-            alertLevels.forEach(level => {
-                if (alertSummary[level] && alertSummary[level].length > 0) {
-                    summaryText += `<div class="summary-level">
-                        <span class="alert-level ${level.toLowerCase()}">${level}</span>: 
-                        ${alertSummary[level].join(', ')}
-                    </div>`;
-                }
-            });
-
-            // Update the situation text
-            elements.situationText.innerHTML = summaryText;
-
-            // Create zone panels
-            elements.zonePanels.innerHTML = '';
-            areas.forEach(area => {
-                const rawZoneName = area.querySelector('areaDesc')?.textContent || '';
-                const zoneName = formatZoneName(rawZoneName); // Format the zone name
-                const alertLevel = area.querySelector('parameter[valueName="alert_level"] value')?.textContent || 'Verde';
-                const geocodeValue = area.querySelector('geocode > value')?.textContent || 'N/A';
-
-                // Create panel elements
-                const zonePanel = document.createElement('div');
-                zonePanel.classList.add('zone-panel');
-
-                const zoneHeader = document.createElement('div');
-                zoneHeader.classList.add('zone-header');
-                zoneHeader.innerHTML = `
-                    <strong>${zoneName}</strong>
-                    <span class="alert-level ${alertLevel.toLowerCase()}">${alertLevel}</span>
-                `;
-                zoneHeader.addEventListener('click', () => togglePanel(zoneHeader));
-                zonePanel.appendChild(zoneHeader);
-
-                const zoneBody = document.createElement('div');
-                zoneBody.classList.add('zone-body');
-
-                // Get all parameters for this area
-                const parameters = area.getElementsByTagName('parameter');
-                const alerts = {};
-                
-                Array.from(parameters).forEach(param => {
-                    const valueNameEl = param.querySelector('valueName');
-                    const valueEl = param.querySelector('value');
-                    
-                    if (valueNameEl && valueEl) {
-                        const name = valueNameEl.textContent;
-                        const value = valueEl.textContent;
-                        
-                        // Debug output
-                        console.log(`Parameter: ${name}, Value: ${value}`);
-
-                        if (name.includes('_day_0') || name.includes('_day_1')) {
-                            const type = name.split('_day_')[0];  // Get the type (e.g., 'idrogeologico')
-                            const day = name.includes('_day_0') ? 'day0' : 'day1';
-                            
-                            if (!alerts[type]) {
-                                alerts[type] = {};
-                            }
-                            alerts[type][day] = value;
-                        }
-                    }
-                });
-
-                const zoneInfo = ZONE_DESCRIPTIONS[zoneName] || {
-                    name: zoneName,
-                    description: 'Informazioni non disponibili',
-                    provinces: 'N/A',
-                    characteristics: 'N/A'
-                };
-
-                let alertDetailsHTML = `
-                    <div class="zone-info">
-                        <h3>${zoneInfo.name}</h3>
-                        <p><strong>Descrizione:</strong> ${zoneInfo.description}</p>
-                        <p><strong>Province:</strong> ${zoneInfo.provinces}</p>
-                        <p><strong>Caratteristiche:</strong> ${zoneInfo.characteristics}</p>
-                    </div>
-                    <hr>
-                    <div class="alert-details">
-                        <p><strong>Livello Allerta:</strong> <span class="alert-level ${alertLevel.toLowerCase()}">${alertLevel}</span></p>
-                        <p><strong>Codice Area:</strong> ${geocodeValue}</p>
-                    </div>
-                    <div class="alert-types">
-                        <h4>Tipi di Allerta:</h4>
-                        <table class="alert-table">
-                            <thead>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <th>Oggi</th>
-                                    <th>Domani</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-
-                // Add rows for each alert type
-                const alertTypes = {
-                    idrogeologico: 'Idrogeologico',
-                    hydrogeological: 'Idrogeologico',  // Alternative name
-                    idraulico: 'Idraulico',
-                    hydraulic: 'Idraulico',  // Alternative name
-                    temporali: 'Temporali',
-                    thunderstorms: 'Temporali',  // Alternative name
-                    neve: 'Neve',
-                    snow: 'Neve',  // Alternative name
-                    valanghe: 'Valanghe',
-                    avalanche: 'Valanghe'  // Alternative name
-                };
-
-                const processedTypes = new Set();
-                Object.entries(alertTypes).forEach(([key, label]) => {
-                    // Skip if we've already processed this alert type
-                    if (processedTypes.has(label)) return;
-                    processedTypes.add(label);
-
-                    // Find the first matching key that has data
-                    const matchingKey = Object.keys(alerts).find(alertKey => 
-                        alertTypes[alertKey] === label
-                    ) || key;
-
-                    const today = alerts[matchingKey]?.day0 || 'Verde';
-                    const tomorrow = alerts[matchingKey]?.day1 || 'Verde';
-
-                    alertDetailsHTML += `
-                        <tr>
-                            <td>${label}</td>
-                            <td><span class="alert-level ${today.toLowerCase()}">${today}</span></td>
-                            <td><span class="alert-level ${tomorrow.toLowerCase()}">${tomorrow}</span></td>
-                        </tr>
-                    `;
-                });
-
-                alertDetailsHTML += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-
-                zoneBody.innerHTML = alertDetailsHTML;
-                zonePanel.appendChild(zoneBody);
-                elements.zonePanels.appendChild(zonePanel);
-            });
-
+            // Process areas and create summary
+            processAreas(xml);
             showLoading(false);
+
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
-            showError(true);
+            
+            // Try next proxy if available
+            if (proxyIndex < CONFIG.corsProxyUrls.length - 1) {
+                console.log(`Trying next proxy server...`);
+                await fetchDashboardData(retryCount, proxyIndex + 1);
+            }
+            // Otherwise try retry logic
+            else if (retryCount < CONFIG.maxRetries) {
+                console.log(`Retrying in ${CONFIG.retryDelay}ms...`);
+                setTimeout(() => fetchDashboardData(retryCount + 1, 0), CONFIG.retryDelay);
+            } else {
+                showError(true);
+            }
         }
+    }
+
+    function processAreas(xml) {
+        const areas = xml.querySelectorAll('area');
+        const alertSummary = {};
+        let maxAlertLevel = 'Verde';
+
+        // Process all areas to build summary
+        areas.forEach(area => {
+            const zoneName = formatZoneName(area.querySelector('areaDesc')?.textContent || '');
+            const alertLevel = area.querySelector('parameter[valueName="alert_level"] value')?.textContent || 'Verde';
+
+            if (!alertSummary[alertLevel]) {
+                alertSummary[alertLevel] = [];
+            }
+            alertSummary[alertLevel].push(zoneName);
+
+            // Update max alert level
+            const alertOrder = { 'Verde': 0, 'Giallo': 1, 'Arancione': 2, 'Rosso': 3 };
+            if (alertOrder[alertLevel] > alertOrder[maxAlertLevel]) {
+                maxAlertLevel = alertLevel;
+            }
+        });
+
+        // Create summary text
+        createSummaryText(alertSummary, maxAlertLevel);
+
+        // Create zone panels
+        createZonePanels(areas);
+    }
+
+    function createSummaryText(alertSummary, maxAlertLevel) {
+        let summaryText = `<strong>Livello massimo di allerta: <span class="alert-level ${maxAlertLevel.toLowerCase()}">${maxAlertLevel}</span></strong><br><br>`;
+        
+        const alertLevels = ['Rosso', 'Arancione', 'Giallo', 'Verde'];
+        alertLevels.forEach(level => {
+            if (alertSummary[level] && alertSummary[level].length > 0) {
+                summaryText += `<div class="summary-level">
+                    <span class="alert-level ${level.toLowerCase()}">${level}</span>: 
+                    ${alertSummary[level].join(', ')}
+                </div>`;
+            }
+        });
+
+        elements.situationText.innerHTML = summaryText;
+    }
+
+    function createZonePanels(areas) {
+        elements.zonePanels.innerHTML = '';
+        areas.forEach(area => {
+            const rawZoneName = area.querySelector('areaDesc')?.textContent || '';
+            const zoneName = formatZoneName(rawZoneName); // Format the zone name
+            const alertLevel = area.querySelector('parameter[valueName="alert_level"] value')?.textContent || 'Verde';
+            const geocodeValue = area.querySelector('geocode > value')?.textContent || 'N/A';
+
+            // Create panel elements
+            const zonePanel = document.createElement('div');
+            zonePanel.classList.add('zone-panel');
+
+            const zoneHeader = document.createElement('div');
+            zoneHeader.classList.add('zone-header');
+            zoneHeader.innerHTML = `
+                <strong>${zoneName}</strong>
+                <span class="alert-level ${alertLevel.toLowerCase()}">${alertLevel}</span>
+            `;
+            zoneHeader.addEventListener('click', () => togglePanel(zoneHeader));
+            zonePanel.appendChild(zoneHeader);
+
+            const zoneBody = document.createElement('div');
+            zoneBody.classList.add('zone-body');
+
+            // Get all parameters for this area
+            const parameters = area.getElementsByTagName('parameter');
+            const alerts = {};
+            
+            Array.from(parameters).forEach(param => {
+                const valueNameEl = param.querySelector('valueName');
+                const valueEl = param.querySelector('value');
+                
+                if (valueNameEl && valueEl) {
+                    const name = valueNameEl.textContent;
+                    const value = valueEl.textContent;
+                    
+                    // Debug output
+                    console.log(`Parameter: ${name}, Value: ${value}`);
+
+                    if (name.includes('_day_0') || name.includes('_day_1')) {
+                        const type = name.split('_day_')[0];  // Get the type (e.g., 'idrogeologico')
+                        const day = name.includes('_day_0') ? 'day0' : 'day1';
+                        
+                        if (!alerts[type]) {
+                            alerts[type] = {};
+                        }
+                        alerts[type][day] = value;
+                    }
+                }
+            });
+
+            const zoneInfo = ZONE_DESCRIPTIONS[zoneName] || {
+                name: zoneName,
+                description: 'Informazioni non disponibili',
+                provinces: 'N/A',
+                characteristics: 'N/A'
+            };
+
+            let alertDetailsHTML = `
+                <div class="zone-info">
+                    <h3>${zoneInfo.name}</h3>
+                    <p><strong>Descrizione:</strong> ${zoneInfo.description}</p>
+                    <p><strong>Province:</strong> ${zoneInfo.provinces}</p>
+                    <p><strong>Caratteristiche:</strong> ${zoneInfo.characteristics}</p>
+                </div>
+                <hr>
+                <div class="alert-details">
+                    <p><strong>Livello Allerta:</strong> <span class="alert-level ${alertLevel.toLowerCase()}">${alertLevel}</span></p>
+                    <p><strong>Codice Area:</strong> ${geocodeValue}</p>
+                </div>
+                <div class="alert-types">
+                    <h4>Tipi di Allerta:</h4>
+                    <table class="alert-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Oggi</th>
+                                <th>Domani</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            // Add rows for each alert type
+            const alertTypes = {
+                idrogeologico: 'Idrogeologico',
+                hydrogeological: 'Idrogeologico',  // Alternative name
+                idraulico: 'Idraulico',
+                hydraulic: 'Idraulico',  // Alternative name
+                temporali: 'Temporali',
+                thunderstorms: 'Temporali',  // Alternative name
+                neve: 'Neve',
+                snow: 'Neve',  // Alternative name
+                valanghe: 'Valanghe',
+                avalanche: 'Valanghe'  // Alternative name
+            };
+
+            const processedTypes = new Set();
+            Object.entries(alertTypes).forEach(([key, label]) => {
+                // Skip if we've already processed this alert type
+                if (processedTypes.has(label)) return;
+                processedTypes.add(label);
+
+                // Find the first matching key that has data
+                const matchingKey = Object.keys(alerts).find(alertKey => 
+                    alertTypes[alertKey] === label
+                ) || key;
+
+                const today = alerts[matchingKey]?.day0 || 'Verde';
+                const tomorrow = alerts[matchingKey]?.day1 || 'Verde';
+
+                alertDetailsHTML += `
+                    <tr>
+                        <td>${label}</td>
+                        <td><span class="alert-level ${today.toLowerCase()}">${today}</span></td>
+                        <td><span class="alert-level ${tomorrow.toLowerCase()}">${tomorrow}</span></td>
+                    </tr>
+                `;
+            });
+
+            alertDetailsHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            zoneBody.innerHTML = alertDetailsHTML;
+            zonePanel.appendChild(zoneBody);
+            elements.zonePanels.appendChild(zonePanel);
+        });
     }
 
     function showLoading(show) {
@@ -291,11 +335,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Function to toggle the visibility of the zone body
-    function togglePanel(header) {
+    window.togglePanel = function(header) {
         const panel = header.parentNode;
         const body = panel.querySelector('.zone-body');
         body.classList.toggle('show');
-    }
+    };
 
     fetchDashboardData();
+
+    // Refresh every 30 minutes
+    setInterval(fetchDashboardData, 30 * 60 * 1000);
 });
+

@@ -1,12 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     const CONFIG = {
         jsonFeedUrl: 'https://www.arpa.piemonte.it/rischi_naturali/widget/comuni/005118/index.json',
-        localProxyUrl: 'http://localhost:3000',
+        corsProxyUrls: [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://cors-anywhere.herokuapp.com/'
+        ],
         retryDelay: 5000,
         maxRetries: 3
     };
 
-    // Remove RISK_TYPES since icons are now in HTML
     const elements = {
         currentAlertLevel: document.getElementById('current-alert-level'),
         emissionDate: document.getElementById('emission-date'),
@@ -55,9 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return new XMLHttpRequest();
     }
 
-    function fetchData(retryCount = 0) {
+    async function fetchData(retryCount = 0, proxyIndex = 0) {
         const xhr = createXHR();
-        const proxyUrl = `${CONFIG.localProxyUrl}/proxy?url=${encodeURIComponent(CONFIG.jsonFeedUrl)}`;
+        const proxyUrl = CONFIG.corsProxyUrls[proxyIndex] + encodeURIComponent(CONFIG.jsonFeedUrl);
 
         xhr.open('GET', proxyUrl, true);
         
@@ -68,23 +71,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateUI(data);
                 } catch (e) {
                     console.error('Error parsing JSON:', e);
-                    updateUI(staticData);
+                    tryNextProxy(retryCount, proxyIndex);
                 }
             } else if (xhr.status === 429 && retryCount < CONFIG.maxRetries) {
                 console.log(`Rate limited, retrying in ${CONFIG.retryDelay}ms...`);
-                setTimeout(() => fetchData(retryCount + 1), CONFIG.retryDelay);
+                setTimeout(() => fetchData(retryCount + 1, proxyIndex), CONFIG.retryDelay);
             } else {
-                console.error('Request failed with status:', xhr.status);
-                updateUI(staticData);
+                tryNextProxy(retryCount, proxyIndex);
             }
         };
 
         xhr.onerror = function() {
             console.error('Request failed');
-            updateUI(staticData);
+            tryNextProxy(retryCount, proxyIndex);
         };
 
         xhr.send();
+    }
+
+    function tryNextProxy(retryCount, currentProxyIndex) {
+        if (currentProxyIndex < CONFIG.corsProxyUrls.length - 1) {
+            console.log(`Trying next proxy server...`);
+            fetchData(retryCount, currentProxyIndex + 1);
+        } else if (retryCount < CONFIG.maxRetries) {
+            console.log(`All proxies failed, retrying from first proxy in ${CONFIG.retryDelay}ms...`);
+            setTimeout(() => fetchData(retryCount + 1, 0), CONFIG.retryDelay);
+        } else {
+            console.error('All proxies failed, using static data');
+            updateUI(staticData);
+        }
     }
 
     function updateUI(data) {
