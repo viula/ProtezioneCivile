@@ -14,89 +14,179 @@
             <li><a href="credits.html"><i class="fas fa-user"></i> Credits</a></li>
         </ul>
     </nav>
-    <header class="main-header">
-        <div class="header-content">
-            <div class="header-title">
-                <h1><i class="fas fa-shield-alt"></i> Zona L - Allerta Meteo ARPA</h1>
+
+    <div class="widget-container">
+        <div class="widget-header">
+            <h1>Allerta meteo-idrogeologica</h1>
+            <div class="widget-update-info">
+                <div class="info-row">
+                    <span class="label">Emesso il:</span>
+                    <span id="emission-date" class="value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Prossimo aggiornamento:</span>
+                    <span id="expires" class="value"></span>
+                </div>
             </div>
-            <div class="update-info">
-                <div class="info-item">
-                    <i class="fas fa-clock"></i>
-                    <div class="info-text">
-                        <strong>Data Emissione:</strong>
-                        <span id="emission-date"></span>
+            <div class="location-info">
+                <h2><i class="fas fa-map-marker-alt"></i> Villanova d'Asti</h2>
+                <!-- <div class="location-details">
+                    <div class="info-item">
+                        <i class="fas fa-mountain"></i>
+                        <span>Zona L - Pianura Torinese e Colline</span>
                     </div>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-info-circle"></i>
-                    <div class="info-text">
-                        <strong>Stato Generale:</strong>
-                        <span id="general-status"></span>
+                    <div class="info-item">
+                        <i class="fas fa-map"></i>
+                        <span>Provincia: Asti</span>
                     </div>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-play-circle"></i>
-                    <div class="info-text">
-                        <strong>Inizio validità:</strong>
-                        <span id="onset"></span>
+                    <div class="info-item">
+                        <i class="fas fa-home"></i>
+                        <span>Codice ISTAT: 005118</span>
                     </div>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-stop-circle"></i>
-                    <div class="info-text">
-                        <strong>Fine validità:</strong>
-                        <span id="expires"></span>
+                </div> -->
+                <div class="operational-details">
+                    <div class="info-group">
+                        <div class="info-item">
+                            <span class="label">Numero Bollettino:</span>
+                            <span id="bulletin-number" class="value"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Livello di Pericolo:</span>
+                            <span id="danger-level" class="value alert-badge"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Aggiornamento Pericolo:</span>
+                            <span id="danger-update" class="value"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Fase Operativa:</span>
+                            <span id="operational-phase" class="value phase-badge"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Aggiornamento Fase:</span>
+                            <span id="phase-update" class="value"></span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </header>
-    
-    <main>
-        <section id="zone-l-details">
+
+        <!-- <div class="operational-info-section">
             <div class="section-header">
-                <div class="situation-summary">
-                    <h2>
-                        <i class="fas fa-exclamation-triangle"></i> 
-                        Situazione Allerta Attuale
-                    </h2>
-                    <p class="current-status">
-                        <span id="situation-text"></span>
-                    </p>
-                </div>
+                <h3><i class="fas fa-exclamation-triangle"></i> Stato Operativo</h3>
             </div>
-            <div class="zone-status card">
-                <div class="current-alert">
-                    <h3>
-                        <div class="alert-description" id="zone-l-alert-description"></div>
-                        <button class="info-button" onclick="toggleLegendModal()">
-                            <i class="fas fa-info-circle"></i>
-                        </button>
-                    </h3>
-                    <div id="zone-l-alert-types">
-                        <!-- Alert types will be dynamically added here -->
+
+        </div> -->
+
+        <div class="widget-content">
+            <div class="alert-summary">
+                <div class="alert-level-box">
+                    <h2>Livello di Allerta</h2>
+                    <div id="current-alert-level" class="alert-badge"></div>
+                </div>
+                
+                <div class="alert-details">
+                    <div class="alert-types-grid">
+                        <div class="alert-type">
+                            <h3><i class="fas fa-water"></i> Idrogeologico</h3>
+                            <div class="day-alerts">
+                                <div class="day-alert">
+                                    <span class="day-label">Oggi:</span>
+                                    <span id="idro-today" class="alert-badge"></span>
+                                </div>
+                                <div class="day-alert">
+                                    <span class="day-label">Domani:</span>
+                                    <span id="idro-tomorrow" class="alert-badge"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert-type">
+                            <h3><i class="fas fa-house-flood-water"></i> Idraulico</h3>
+                            <div class="day-alerts">
+                                <div class="day-alert">
+                                    <span class="day-label">Oggi:</span>
+                                    <span id="idrau-today" class="alert-badge"></span>
+                                </div>
+                                <div class="day-alert">
+                                    <span class="day-label">Domani:</span>
+                                    <span id="idrau-tomorrow" class="alert-badge"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert-type">
+                            <h3><i class="fas fa-cloud-bolt"></i> Temporali</h3>
+                            <div class="day-alerts">
+                                <div class="day-alert">
+                                    <span class="day-label">Oggi:</span>
+                                    <span id="temp-today" class="alert-badge"></span>
+                                </div>
+                                <div class="day-alert">
+                                    <span class="day-label">Domani:</span>
+                                    <span id="temp-tomorrow" class="alert-badge"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert-type">
+                            <h3><i class="fas fa-snowflake"></i> Neve</h3>
+                            <div class="day-alerts">
+                                <div class="day-alert">
+                                    <span class="day-label">Oggi:</span>
+                                    <span id="snow-today" class="alert-badge"></span>
+                                </div>
+                                <div class="day-alert">
+                                    <span class="day-label">Domani:</span>
+                                    <span id="snow-tomorrow" class="alert-badge"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div id="loading" class="hidden">
-                <i class="fas fa-spinner fa-spin"></i> Caricamento dati in corso...
+
+            <div class="recommendations-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-exclamation-circle"></i> Note e Raccomandazioni</h3>
+                </div>
+                <div class="recommendations-content">
+                    <div class="recommendation-item">
+                        <i class="fas fa-info-circle"></i>
+                        <p>In caso di allerta, consultare frequentemente gli aggiornamenti e seguire le indicazioni delle autorità locali.</p>
+                    </div>
+                    <div class="recommendation-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <p>Numeri utili:</p>
+                        <ul>
+                            <li>Emergenze: 112</li>
+                            <li>Protezione Civile: 800 500 300</li>
+                            <li>Comune di Villanova d'Asti: 0141 946085</li>
+                        </ul>
+                    </div>
+                    <div class="recommendation-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <p>Comportamenti da adottare:</p>
+                        <ul>
+                            <li>Non sostare in prossimità di fiumi, torrenti o zone potenzialmente allagabili</li>
+                            <li>Evitare di attraversare ponti o sottopassaggi durante le precipitazioni intense</li>
+                            <li>Tenersi informati sulle condizioni meteorologiche e seguire le indicazioni della Protezione Civile</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div id="error" class="hidden">
-                <i class="fas fa-exclamation-circle"></i> Errore nel caricamento dei dati.
+
+            <div class="widget-footer">
+                <button class="info-button" onclick="toggleLegendModal()">
+                    <i class="fas fa-info-circle"></i> Legenda
+                </button>
+                <a href="https://www.arpa.piemonte.it/rischi_naturali/index.html" target="_blank" class="arpa-link">
+                    Maggiori informazioni
+                </a>
             </div>
-        </section>
-        
-        <section id="disclaimer">
-            <p><i class="fas fa-info-circle"></i> Fonte dati: <a href="https://www.arpa.piemonte.it/" target="_blank">ARPA Piemonte</a>. 
-            Le informazioni potrebbero non essere in tempo reale.</p>
-        </section>
-    </main>
-    
-    <footer>
-        <p>&copy; 2025 - Web App Allerta Meteo</p>
-    </footer>
-    
+        </div>
+    </div>
+
     <div id="legendModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -107,7 +197,6 @@
             </div>
             <div class="modal-body">
                 <div class="legend-items">
-                    <!-- Legend items for alert levels -->
                     <div class="legend-item verde">
                         <span class="alert-badge verde">Verde</span>
                         <div class="legend-description">
@@ -137,6 +226,6 @@
         </div>
     </div>
     
-    <script src="script.js"></script>
+    <script src="villanova.js"></script>
 </body>
 </html>
