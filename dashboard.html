@@ -34,7 +34,7 @@
                         <span id="general-status"></span>
                     </div>
                 </div>
-                <!-- <div class="info-item">
+                <div class="info-item">
                     <i class="fas fa-play-circle"></i>
                     <div class="info-text">
                         <strong>Inizio validità:</strong>
@@ -47,7 +47,7 @@
                         <strong>Fine validità:</strong>
                         <span id="expires"></span>
                     </div>
-                </div> -->
+                </div>
             </div>
         </div>
     </header>
@@ -59,19 +59,20 @@
                     <h2>
                         <i class="fas fa-exclamation-triangle"></i> 
                         Situazione Allerta Attuale
-                        <button class="info-button" onclick="toggleLegendModal()">
-                            <i class="fas fa-info-circle"></i>
-                        </button>
                     </h2>
                     <p class="current-status">
-                        <i class="fas fa-circle-info"></i>
                         <span id="situation-text"></span>
                     </p>
                 </div>
             </div>
             
             <div id="alert-details">
-                <h3><i class="fas fa-map-marked-alt"></i> Zone di Allerta</h3>
+                <h3>
+                    <i class="fas fa-map-marked-alt"></i> Zone di Allerta
+                    <button class="info-button" onclick="toggleLegendModal()">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </h3>
                 <ul id="zone-alerts" class="zone-list"></ul>
             </div>
             
