@@ -402,6 +402,18 @@ footer {
     margin-left: 4px;
 }
 
+.alert-badge-min {
+    width: 25%;
+    float: left;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+}
+
 .weather-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -559,7 +571,7 @@ footer {
     color: #999;
 }
 
-.alert-badge {
+.alert-badge, .alert-badge-min {
     padding: 0.25rem 1rem;
     border-radius: 4px;
     font-weight: 600;
@@ -569,43 +581,43 @@ footer {
     min-width: 80px;
 }
 
-.verde .alert-badge {
+.verde .alert-badge, .verde .alert-badge-min {
     background-color: #28a745;
     color: white;
 }
 
-.giallo .alert-badge {
+.giallo .alert-badge, .giallo .alert-badge-min {
     background-color: #ffc107;
     color: #000;
 }
 
-.arancione .alert-badge {
+.arancione .alert-badge, .arancione .alert-badge-min {
     background-color: #fd7e14;
     color: white;
 }
 
-.rosso .alert-badge {
+.rosso .alert-badge, .rosso .alert-badge-min {
     background-color: #dc3545;
     color: white;
 }
 
-.alert-badge.verde {
-    background-color: green;
+.alert-badge.verde, .alert-badge-min.verde {
+    background-color: #28a745;
     color: white;
 }
 
-.alert-badge.giallo {
-    background-color: yellow;
+.alert-badge.giallo, .alert-badge-min.giallo {
+    background-color: #ffc107;
     color: black;
 }
 
-.alert-badge.arancione {
-    background-color: orange;
+.alert-badge.arancione, .alert-badge-min.arancione {
+    background-color: #fd7e14;
     color: black;
 }
 
-.alert-badge.rosso {
-    background-color: red;
+.alert-badge.rosso, .alert-badge-min.rosso {
+    background-color: #dc3545;
     color: white;
 }
 

@@ -148,6 +148,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="zone-panel">
                     <div class="zone-header" onclick="togglePanel(this)">
                         <h3>${areaDesc}</h3>
+                        <span class="alert-badge-min ${alertEvent.toLowerCase()}">${alertEvent}</span>
+                        <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="zone-body">
                         <div class="operational-details">
