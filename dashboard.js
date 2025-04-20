@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function() {
+import { fetchXMLData } from './utils/xml.js';
+
+document.addEventListener('DOMContentLoaded', function () {
     const CONFIG = {
         xmlFeedUrl: 'https://www.arpa.piemonte.it/export/xmlcap/allerta.xml',
         corsProxyUrls: [
@@ -11,339 +13,234 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const elements = {
-        emissionDate: document.getElementById('emission-date'),
-        generalStatus: document.getElementById('general-status'),
-        onset: document.getElementById('onset'),
-        expires: document.getElementById('expires'),
-        situationText: document.getElementById('situation-text'),
-        zonePanels: document.getElementById('zone-panels'),
-        loading: document.getElementById('loading'),
-        error: document.getElementById('error')
+        alertHeadline: document.getElementById('alert-headline'),
+        alertDescription: document.getElementById('alert-description'),
+        alertEvent: document.getElementById('alert-event'),
+        alertSeverity: document.getElementById('alert-severity'),
+        alertUrgency: document.getElementById('alert-urgency'),
+        alertCertainty: document.getElementById('alert-certainty'),
+        alertEffective: document.getElementById('alert-effective'),
+        alertExpires: document.getElementById('alert-expires'),
+        alertAreaDesc: document.getElementById('alert-area-desc'),
+        alertSent: document.getElementById('alert-sent'),
+        areasContainer: document.getElementById('areas-container')
     };
 
-    const ZONE_DESCRIPTIONS = {
-        'Zona A': {
-            name: 'Alto Novarese e VCO',
-            description: 'Comprende il settore settentrionale del Piemonte, includendo la Val d\'Ossola, il Verbano, il Cusio e l\'alto novarese.',
-            provinces: 'Verbano-Cusio-Ossola, Novara (parte settentrionale)',
-            characteristics: 'Area alpina e prealpina con presenza di grandi laghi.'
-        },
-        'Zona B': {
-            name: 'Pianura Settentrionale',
-            description: 'Include la pianura novarese, biellese e vercellese.',
-            provinces: 'Novara (pianura), Vercelli, Biella',
-            characteristics: 'Area pianeggiante con presenza di risaie e reticolo idrografico complesso.'
-        },
-        'Zona C': {
-            name: 'Valli Torinesi',
-            description: 'Comprende le valli alpine del torinese.',
-            provinces: 'Torino (settore alpino)',
-            characteristics: 'Area prevalentemente montuosa con valli alpine profonde.'
-        },
-        'Zona D': {
-            name: 'Pianura Torinese e Colline',
-            description: 'Include l\'area metropolitana di Torino e le colline circostanti.',
-            provinces: 'Torino (pianura e collina)',
-            characteristics: 'Area urbanizzata con presenza di colline e pianura.'
-        },
-        'Zona E': {
-            name: 'Cuneese Montano',
-            description: 'Comprende il settore alpino della provincia di Cuneo.',
-            provinces: 'Cuneo (settore alpino)',
-            characteristics: 'Area montana con presenza di importanti massicci alpini.'
-        },
-        'Zona F': {
-            name: 'Pianura Cuneese',
-            description: 'Include la pianura della provincia di Cuneo.',
-            provinces: 'Cuneo (pianura)',
-            characteristics: 'Area pianeggiante con presenza di importanti corsi d\'acqua.'
-        },
-        'Zona G': {
-            name: 'Astigiano',
-            description: 'Comprende il territorio della provincia di Asti.',
-            provinces: 'Asti',
-            characteristics: 'Area collinare con caratteristiche vitivinicole.'
-        },
-        'Zona H': {
-            name: 'Torinese Collinare',
-            description: 'Include l\'area collinare del torinese.',
-            provinces: 'Torino (settore collinare)',
-            characteristics: 'Area prevalentemente collinare.'
-        },
-        'Zona I': {
-            name: 'Alessandrino Settentrionale',
-            description: 'Comprende il settore settentrionale della provincia di Alessandria.',
-            provinces: 'Alessandria (nord)',
-            characteristics: 'Area collinare e di pianura con presenza di importanti corsi d\'acqua.'
-        },
-        'Zona L': {
-            name: 'Alessandrino Appenninico',
-            description: 'Include il settore appenninico della provincia di Alessandria.',
-            provinces: 'Alessandria (sud)',
-            characteristics: 'Area appenninica con caratteristiche orografiche complesse.'
-        },
-        'Zona M': {
-            name: 'Belbo e Bormida',
-            description: 'Comprende i bacini dei fiumi Belbo e Bormida.',
-            provinces: 'Alessandria, Asti (bacini Belbo e Bormida)',
-            characteristics: 'Area con presenza di importanti bacini fluviali.'
-        }
-    };
+    const paramList = [
+        'sent',
+        'info/event',
+        'info/severity',
+        'info/urgency',
+        'info/certainty',
+        'info/effective',
+        'info/expires',
+        'info/headline',
+        'info/description',
+        'info/area/areaDesc'
+    ];
 
-    function formatZoneName(name) {
-        return name.replace(/Piem-([A-Z])/g, 'Zona $1');
-    }
+    async function fetchWithRetry(retryCount = 0, proxyIndex = 0) {
+        const proxy = CONFIG.corsProxyUrls[proxyIndex];
+        const url = proxy + encodeURIComponent(CONFIG.xmlFeedUrl);
 
-    function createXHR() {
-        return new XMLHttpRequest();
-    }
-
-    async function fetchDashboardData(retryCount = 0, proxyIndex = 0) {
-        showLoading(true);
         try {
-            // Try different CORS proxies in sequence
-            const proxyUrl = CONFIG.corsProxyUrls[proxyIndex] + encodeURIComponent(CONFIG.xmlFeedUrl);
-            const response = await fetch(proxyUrl, {
-                headers: {
-                    'Accept': 'application/xml',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
+            const res = await fetch(url);
+            const xmlText = await res.text();
+            const xmlDoc = new DOMParser().parseFromString(xmlText, 'text/xml');
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+            const alertElements = Array.from(xmlDoc.querySelectorAll("info"));
 
-            const xmlText = await response.text();
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(xmlText, "application/xml");
-
-            if (xml.querySelector('parsererror')) {
-                throw new Error('XML parsing error');
-            }
-
-            // Update header information
-            elements.emissionDate.textContent = xml.querySelector('sent')?.textContent || '';
-            elements.generalStatus.textContent = xml.querySelector('info > headline')?.textContent || '';
-            elements.onset.textContent = xml.querySelector('info > onset')?.textContent || '';
-            elements.expires.textContent = xml.querySelector('info > expires')?.textContent || '';
-
-            // Process areas and create summary
-            processAreas(xml);
-            showLoading(false);
-
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error);
-            
-            // Try next proxy if available
-            if (proxyIndex < CONFIG.corsProxyUrls.length - 1) {
-                console.log(`Trying next proxy server...`);
-                await fetchDashboardData(retryCount, proxyIndex + 1);
-            }
-            // Otherwise try retry logic
-            else if (retryCount < CONFIG.maxRetries) {
-                console.log(`Retrying in ${CONFIG.retryDelay}ms...`);
-                setTimeout(() => fetchDashboardData(retryCount + 1, 0), CONFIG.retryDelay);
+            if (alertElements.length > 0) {
+                // Fetch and process data using fetchXMLData
+                const data = await fetchXMLData(url, paramList, 'alert');
+                if (data && data.length > 0) updateUI(data[0]);
+                generateAreaTables(alertElements);
             } else {
-                showError(true);
+                console.warn('No alert data found.');
             }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            tryNextProxy(retryCount, proxyIndex);
         }
     }
 
-    function processAreas(xml) {
-        const areas = xml.querySelectorAll('area');
-        const alertSummary = {};
-        let maxAlertLevel = 'Verde';
-
-        // Process all areas to build summary
-        areas.forEach(area => {
-            const zoneName = formatZoneName(area.querySelector('areaDesc')?.textContent || '');
-            const alertLevel = area.querySelector('parameter[valueName="alert_level"] value')?.textContent || 'Verde';
-
-            if (!alertSummary[alertLevel]) {
-                alertSummary[alertLevel] = [];
-            }
-            alertSummary[alertLevel].push(zoneName);
-
-            // Update max alert level
-            const alertOrder = { 'Verde': 0, 'Giallo': 1, 'Arancione': 2, 'Rosso': 3 };
-            if (alertOrder[alertLevel] > alertOrder[maxAlertLevel]) {
-                maxAlertLevel = alertLevel;
-            }
-        });
-
-        // Create summary text
-        createSummaryText(alertSummary, maxAlertLevel);
-
-        // Create zone panels
-        createZonePanels(areas);
+    function tryNextProxy(retryCount, currentProxyIndex) {
+        if (currentProxyIndex < CONFIG.corsProxyUrls.length - 1) {
+            console.log(`Trying next proxy server...`);
+            fetchWithRetry(retryCount, currentProxyIndex + 1);
+        } else if (retryCount < CONFIG.maxRetries) {
+            console.log(`All proxies failed, retrying from first proxy in ${CONFIG.retryDelay}ms...`);
+            setTimeout(() => fetchWithRetry(retryCount + 1, 0), CONFIG.retryDelay);
+        } else {
+            console.error('All proxies failed.');
+        }
     }
 
-    function createSummaryText(alertSummary, maxAlertLevel) {
-        let summaryText = `<strong>Livello massimo di allerta: <span class="alert-level ${maxAlertLevel.toLowerCase()}">${maxAlertLevel}</span></strong><br><br>`;
-        
-        const alertLevels = ['Rosso', 'Arancione', 'Giallo', 'Verde'];
-        alertLevels.forEach(level => {
-            if (alertSummary[level] && alertSummary[level].length > 0) {
-                summaryText += `<div class="summary-level">
-                    <span class="alert-level ${level.toLowerCase()}">${level}</span>: 
-                    ${alertSummary[level].join(', ')}
-                </div>`;
-            }
-        });
+    function updateUI(data) {
+        const set = (el, val) => {
+            if (el && val !== undefined) el.textContent = val;
+        };
 
-        elements.situationText.innerHTML = summaryText;
+        set(elements.alertHeadline, data['info/headline']);
+        set(elements.alertDescription, data['info/description']);
+        set(elements.alertEvent, data['info/event']);
+        set(elements.alertSeverity, data['info/severity']);
+        set(elements.alertUrgency, data['info/urgency']);
+        set(elements.alertCertainty, data['info/certainty']);
+        set(elements.alertEffective, formatDate(data['info/effective']));
+        set(elements.alertExpires, formatDate(data['info/expires']));
+        set(elements.alertAreaDesc, data['info/area/areaDesc']);
+        set(elements.alertSent, formatDate(data['sent']));
+
+        if (elements.alertSeverity) {
+            elements.alertSeverity.className = `alert-badge ${data['info/severity'].toLowerCase()}`;
+        }
     }
 
-    function createZonePanels(areas) {
-        elements.zonePanels.innerHTML = '';
-        areas.forEach(area => {
-            const rawZoneName = area.querySelector('areaDesc')?.textContent || '';
-            const zoneName = formatZoneName(rawZoneName); // Format the zone name
-            const alertLevel = area.querySelector('parameter[valueName="alert_level"] value')?.textContent || 'Verde';
-            const geocodeValue = area.querySelector('geocode > value')?.textContent || 'N/A';
+    function formatDate(dateStr) {
+        try {
+            return new Date(dateStr).toLocaleString('it-IT');
+        } catch {
+            return dateStr;
+        }
+    }
 
-            // Create panel elements
-            const zonePanel = document.createElement('div');
-            zonePanel.classList.add('zone-panel');
+    function generateAreaTables(alertElements) {
+        const container = elements.areasContainer;
+        container.innerHTML = '';
 
-            const zoneHeader = document.createElement('div');
-            zoneHeader.classList.add('zone-header');
-            zoneHeader.innerHTML = `
-                <strong>${zoneName}</strong>
-                <span class="alert-level ${alertLevel.toLowerCase()}">${alertLevel}</span>
-            `;
-            zoneHeader.addEventListener('click', () => togglePanel(zoneHeader));
-            zonePanel.appendChild(zoneHeader);
+        alertElements.forEach(alert => {
+            const alertEvent = alert.querySelector('event')?.textContent ?? 'Allerta sconosciuta';
+            const responseType = alert.querySelector('responseType')?.textContent ?? 'N/A';
+            const urgency = alert.querySelector('urgency')?.textContent ?? 'N/A';
+            const severity = alert.querySelector('severity')?.textContent ?? 'N/A';
+            const certainty = alert.querySelector('certainty')?.textContent ?? 'N/A';
+            const areaDesc = alert.querySelector('areaDesc')?.textContent ?? 'Area sconosciuta';
+            const onset = alert.querySelector('onset')?.textContent ?? 'N/A';
+            const expires = alert.querySelector('expires')?.textContent ?? 'N/A';
+            const sent = alert.querySelector('sent')?.textContent ?? 'N/A';
+            const parameters = Array.from(alert.querySelectorAll('parameter'));
 
-            const zoneBody = document.createElement('div');
-            zoneBody.classList.add('zone-body');
+            console.log(`Generando tabella per l'area: ${areaDesc}`); // Log della generazione della tabella per area
 
-            // Get all parameters for this area
-            const parameters = area.getElementsByTagName('parameter');
-            const alerts = {};
-            
-            Array.from(parameters).forEach(param => {
-                const valueNameEl = param.querySelector('valueName');
-                const valueEl = param.querySelector('value');
-                
-                if (valueNameEl && valueEl) {
-                    const name = valueNameEl.textContent;
-                    const value = valueEl.textContent;
-                    
-                    // Debug output
-                    console.log(`Parameter: ${name}, Value: ${value}`);
+            const data = {}; // Crea un oggetto separato per ogni area
 
-                    if (name.includes('_day_0') || name.includes('_day_1')) {
-                        const type = name.split('_day_')[0];  // Get the type (e.g., 'idrogeologico')
-                        const day = name.includes('_day_0') ? 'day0' : 'day1';
-                        
-                        if (!alerts[type]) {
-                            alerts[type] = {};
-                        }
-                        alerts[type][day] = value;
+            // Estrarre i parametri per ogni area
+            parameters.forEach(param => {
+                const name = param.querySelector("valueName")?.textContent;
+                const value = param.querySelector("value")?.textContent;
+
+                if (name && value) {
+                    const [phenomenon, interval] = name.split("_");
+
+                    if (!data[phenomenon]) data[phenomenon] = {};
+
+                    // Assegna il valore correttamente agli intervalli
+                    if (interval === "1224") {
+                        data[phenomenon]["1224"] = value;
+                    } else if (interval === "2436") {
+                        data[phenomenon]["2436"] = value;
                     }
                 }
             });
 
-            const zoneInfo = ZONE_DESCRIPTIONS[zoneName] || {
-                name: zoneName,
-                description: 'Informazioni non disponibili',
-                provinces: 'N/A',
-                characteristics: 'N/A'
-            };
-
-            let alertDetailsHTML = `
-                <div class="zone-info">
-                    <h3>${zoneInfo.name}</h3>
-                    <p><strong>Descrizione:</strong> ${zoneInfo.description}</p>
-                    <p><strong>Province:</strong> ${zoneInfo.provinces}</p>
-                    <p><strong>Caratteristiche:</strong> ${zoneInfo.characteristics}</p>
-                </div>
-                <hr>
-                <div class="alert-details">
-                    <p><strong>Livello Allerta:</strong> <span class="alert-level ${alertLevel.toLowerCase()}">${alertLevel}</span></p>
-                    <p><strong>Codice Area:</strong> ${geocodeValue}</p>
-                </div>
-                <div class="alert-types">
-                    <h4>Tipi di Allerta:</h4>
-                    <table class="alert-table">
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Oggi</th>
-                                <th>Domani</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            // Add rows for each alert type
-            const alertTypes = {
-                idrogeologico: 'Idrogeologico',
-                hydrogeological: 'Idrogeologico',  // Alternative name
-                idraulico: 'Idraulico',
-                hydraulic: 'Idraulico',  // Alternative name
-                temporali: 'Temporali',
-                thunderstorms: 'Temporali',  // Alternative name
-                neve: 'Neve',
-                snow: 'Neve',  // Alternative name
-                valanghe: 'Valanghe',
-                avalanche: 'Valanghe'  // Alternative name
-            };
-
-            const processedTypes = new Set();
-            Object.entries(alertTypes).forEach(([key, label]) => {
-                // Skip if we've already processed this alert type
-                if (processedTypes.has(label)) return;
-                processedTypes.add(label);
-
-                // Find the first matching key that has data
-                const matchingKey = Object.keys(alerts).find(alertKey => 
-                    alertTypes[alertKey] === label
-                ) || key;
-
-                const today = alerts[matchingKey]?.day0 || 'Verde';
-                const tomorrow = alerts[matchingKey]?.day1 || 'Verde';
-
-                alertDetailsHTML += `
-                    <tr>
-                        <td>${label}</td>
-                        <td><span class="alert-level ${today.toLowerCase()}">${today}</span></td>
-                        <td><span class="alert-level ${tomorrow.toLowerCase()}">${tomorrow}</span></td>
-                    </tr>
-                `;
-            });
-
-            alertDetailsHTML += `
-                        </tbody>
-                    </table>
+            const tableHTML = `
+                <div class="zone-panel">
+                    <div class="zone-header" onclick="togglePanel(this)">
+                        <h3>${areaDesc}</h3>
+                    </div>
+                    <div class="zone-body">
+                        <div class="operational-details">
+                            <div class="info-group">
+                                <div class="info-item">
+                                    <span class="label">Livello di pericolo:</span>
+                                    <span class="alert-badge ${alertEvent.toLowerCase()}">${alertEvent}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Tipo di risposta:</span>
+                                    <span class="value">${responseType}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Data di emissione:</span>
+                                    <span class="value">${formatDate(sent)}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Data di scadenza:</span>
+                                    <span class="value">${formatDate(expires)}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Data di inizio:</span>
+                                    <span class="value">${formatDate(onset)}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Urgenza:</span>
+                                    <span class="value-badge">${urgency}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Severità:</span>
+                                    <span class="alert-badge ${severity.toLowerCase()}">${severity}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Certezza:</span>
+                                    <span class="value-badge">${certainty}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert-types-grid">
+                            ${Object.entries(data).map(([phenomenon, values]) => `
+                                <div class="alert-type">
+                                    <h3><i class="${getPhenomenonIcon(phenomenon)}"></i> ${capitalize(phenomenon.toLowerCase())}</h3>
+                                    <div class="day-alerts">
+                                        <div class="day-alert">
+                                            <span class="day-label">Oggi:</span>
+                                            <span class="alert-badge ${(values["1224"] || '').toLowerCase()}">${values["1224"] ?? "-"}</span>
+                                        </div>
+                                        <div class="day-alert">
+                                            <span class="day-label">Domani:</span>
+                                            <span class="alert-badge ${(values["2436"] || '').toLowerCase()}">${values["2436"] ?? "-"}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
             `;
 
-            zoneBody.innerHTML = alertDetailsHTML;
-            zonePanel.appendChild(zoneBody);
-            elements.zonePanels.appendChild(zonePanel);
+            container.insertAdjacentHTML("beforeend", tableHTML);
         });
     }
 
-    function showLoading(show) {
-        if (elements.loading) elements.loading.classList.toggle('hidden', !show);
-    }
-    function showError(show) {
-        if (elements.error) elements.error.classList.toggle('hidden', !show);
+    function getPhenomenonIcon(phenomenon) {
+        const icons = {
+            'IDROGEOLOGICO': 'fas fa-water',
+            'IDRAULICO': 'fas fa-house-flood-water',
+            'TEMPORALI': 'fas fa-cloud-bolt',
+            'NEVE': 'fas fa-snowflake',
+            'VALANGHE': 'fas fa-mountain'
+        };
+        return icons[phenomenon.toUpperCase()] || 'fas fa-exclamation-triangle';
     }
 
-    // Function to toggle the visibility of the zone body
-    window.togglePanel = function(header) {
-        const panel = header.parentNode;
+    function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function togglePanel(header) {
+        const panel = header.closest('.zone-panel');
         const body = panel.querySelector('.zone-body');
-        body.classList.toggle('show');
-    };
+        if (body) {
+            body.classList.toggle('show');
+            header.classList.toggle('expanded');
+        }
+    }
 
-    fetchDashboardData();
+    // Make togglePanel available globally
+    window.togglePanel = togglePanel;
+
+    // Initial load
+    fetchWithRetry();
 
     // Refresh every 30 minutes
-    setInterval(fetchDashboardData, 30 * 60 * 1000);
+    setInterval(fetchWithRetry, 30 * 60 * 1000);
 });
-

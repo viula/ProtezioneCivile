@@ -1618,3 +1618,40 @@ footer {
         padding: 4px 8px;
     }
 }
+
+.alert-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.alert-table th, .alert-table td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.alert-table th {
+    background-color: #f4f4f4;
+}
+
+.alert-table td.verde { background-color: #d4edda; }
+.alert-table td.giallo { background-color: #fff3cd; }
+.alert-table td.arancione { background-color: #ffeeba; }
+.alert-table td.rosso { background-color: #f8d7da; }
+
+.alert-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 2em;
+  }
+  .alert-table th,
+  .alert-table td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+  }
+  .alert-table th {
+    background-color: #f0f0f0;
+  }
+  
