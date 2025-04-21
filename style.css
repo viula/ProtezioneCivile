@@ -1469,6 +1469,25 @@ footer {
     }
 }
 
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+.table th, .table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+.table th {
+    background-color: #f8f9fa;
+    color: #333;
+}
+.table td {
+    color: #666;
+}
+
+
 .zone-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

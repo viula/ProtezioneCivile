@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Stazione ARPA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+</head>
+<body>
+    
+    <nav class="main-nav">
+        <ul>
+            <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="credits.html"><i class="fas fa-user"></i> Credits</a></li>
+        </ul>
+    </nav>
+
+    <div class="widget-container">
+        <div class="widget-header">
+            <h1>Dati Stazione ARPA POIRINO BANNA (131)</h1>
+        </div>
+        <div class="table" id="json-table-container">Caricamento dati...</div>
+        <div class="widget-footer">
+            <button class="info-button" onclick="toggleLegendModal()">
+                <i class="fas fa-info-circle"></i> Legenda
+            </button>
+            <a href="https://www.arpa.piemonte.it/rischi_naturali/index.html" target="_blank" class="arpa-link">
+                Maggiori informazioni
+            </a>
+        </div>
+    <script type="module" src="indicatori.js"></script>
+</body>
+</html>

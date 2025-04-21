@@ -36,4 +36,3 @@ export async function fetchJSONData(url, paramList = [], rootPath = null) {
       return [];
     }
   }
-  
