@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const guard_threshold = 4.9;
     const danger_threshold = 5.8;
 
-    const targetElement = document.getElementById('json-table-container');
+    const targetElement = document.getElementById('table-container');
     const thresholdElement = document.getElementById('threshold-level');
 
     thresholdElement.innerHTML = `<div class="card">Livello soglia: ${threshold_level} m<br>` +
@@ -63,15 +63,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderTable(data) {
         const table = document.createElement('table');
-        table.classList.add('table-responsive');
+        table.classList.add('table');
 
         const thead = document.createElement('thead');
         thead.innerHTML = `
             <tr>
                 <th>Data</th>
-                <th>Ora del rilevamento</th>
-                <th>Livello Idrometrico</th>
-                <th>Nota</th>
+                <th>Livello</th>
             </tr>
         `;
         table.appendChild(thead);
@@ -104,10 +102,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${new Date(date).toLocaleDateString()}</td>
-                <td>${new Date(date).getHours()}</td>
-                <td style="color: ${levelColor};">${icon} ${hydrometric_level}</td>
-                <td>${thresholdMessage}</td>
+                <td>${new Date(date).toLocaleDateString()}, h. ${new Date(date).getHours()}</td>
+                <td style="color: ${levelColor};">${icon} ${hydrometric_level}<br />${thresholdMessage}</td>
             `;
             tbody.appendChild(tr);
         });

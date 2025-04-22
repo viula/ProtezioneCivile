@@ -853,24 +853,29 @@ footer {
     }
 }
 
+/* Stile di base */
 .main-nav {
     background: #003366;
     padding: 0.5em 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    position: relative;
 }
+
 .main-nav ul {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: flex-end; /* <-- changed from flex-start */
+    justify-content: flex-end;
     gap: 1.5em;
     max-width: 900px;
     margin-left: auto;
 }
+
 .main-nav li {
     display: inline;
 }
+
 .main-nav a {
     color: #fff;
     text-decoration: none;
@@ -883,9 +888,66 @@ footer {
     align-items: center;
     gap: 0.4em;
 }
+
 .main-nav a:hover {
     background: #2563eb;
 }
+
+/* Icona panino */
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    padding: 0.5em;
+}
+
+.bar {
+    width: 30px;
+    height: 4px;
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+.nav-list {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1.5em;
+}
+
+.nav-list.active {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 1em;
+        display: none;
+    }
+
+    .menu-toggle {
+        display: flex;
+    }
+
+    .nav-list.active {
+        display: flex;
+    }
+}
+
+/* Responsivo per schermi molto piccoli (es. smartphone) */
+@media (max-width: 480px) {
+    .main-nav ul {
+        padding: 0;
+    }
+
+    .main-nav a {
+        font-size: 1.15em;
+        padding: 0.5em 1.2em;
+    }
+}
+
 
 /* Credits Section - harmonized with main cards */
 .credits-section {
@@ -1469,20 +1531,16 @@ footer {
     }
 }
 
-/* table (responsive) */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
 
 .table {
-    width: 100%;
+    width: auto;
     border-collapse: collapse;
     margin-top: 20px;
     border-radius: 8px;
     overflow: hidden;
-    min-width: 600px; /* larghezza minima per evitare layout troppo compatti */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    min-width: 350px; /* larghezza minima per evitare layout troppo compatti */
 }
 
 .table th, .table td {
