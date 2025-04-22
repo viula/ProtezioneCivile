@@ -25,19 +25,21 @@
 
     <div class="widget-container">
         <div class="widget-header">
+            <h2><i class="fas fa-map-marker-alt"></i> Villanova d'Asti</h2>
             <h1>Allerta meteo-idrogeologica</h1>
-            <div class="widget-update-info">
-                <div class="info-row">
-                    <span class="label">Emesso il:</span>
-                    <span id="emission-date" class="value"></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Prossimo aggiornamento:</span>
-                    <span id="expires" class="value"></span>
+            <div class="card">
+                <div class="widget-update-info">
+                    <div class="info-row">
+                        <span class="label">Emesso il:</span>
+                        <span id="emission-date" class="value"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Prossimo aggiornamento:</span>
+                        <span id="expires" class="value"></span>
+                    </div>
                 </div>
             </div>
             <div class="location-info">
-                <h2><i class="fas fa-map-marker-alt"></i> Villanova d'Asti</h2>
                 <!-- <div class="location-details">
                     <div class="info-item">
                         <i class="fas fa-mountain"></i>
@@ -52,25 +54,25 @@
                         <span>Codice ISTAT: 005118</span>
                     </div>
                 </div> -->
-            <div class="operational-details">
+                <div class="operational-details">
                     <div class="info-group">
-                        <div class="info-item">    
+                        <div class="info-row">    
                             <span class="label">Numero Bollettino:</span>
                             <span id="bulletin-number" class="value"></span>
                         </div>
-                        <div class="info-item">
+                        <div class="info-row">
                             <span class="label">Livello di Pericolo:</span>
                             <span id="danger-level" class="value alert-badge"></span>
                         </div>
-                        <div class="info-item">
+                        <div class="info-row">
                             <span class="label">Aggiornamento Pericolo:</span>
                             <span id="danger-update" class="value"></span>
                         </div>
-                        <div class="info-item">
+                        <div class="info-row">
                             <span class="label">Fase Operativa:</span>
                             <span id="operational-phase" class="value phase-badge"></span>
                         </div>
-                        <div class="info-item">
+                        <div class="info-row">
                             <span class="label">Aggiornamento Fase:</span>
                             <span id="phase-update" class="value"></span>
                         </div>
@@ -79,16 +81,9 @@
             </div>
         </div>
 
-        <!-- <div class="operational-info-section">
-            <div class="section-header">
-                <h3><i class="fas fa-exclamation-triangle"></i> Stato Operativo</h3>
-            </div>
-
-        </div> -->
-
         <div class="widget-content">
             <div class="alert-summary">
-                <div class="alert-level-box">
+                <div class="alert-summary-header">
                     <h2>Livello di Allerta</h2>
                     <div id="current-alert-level" class="alert-badge"></div>
                 </div>

@@ -1241,7 +1241,7 @@ footer {
 .info-row {
     display: flex;
     justify-content: space-between;
-    margin: 5px 0;
+    margin: auto;
 }
 
 .alert-summary {
@@ -1307,8 +1307,8 @@ footer {
 }
 
 .alert-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 4px 0;
+    border-radius: 4px 0;
     font-weight: bold;
     text-transform: uppercase;
     font-size: 0.9em;
@@ -1521,6 +1521,19 @@ footer {
 
 .info-item .value {
     color: #333;
+}
+
+.info-row .label {
+    color: #333;
+    margin: 5px 0 8px;
+    padding: 4px 8px;
+    width: 50%;
+}
+
+.info-row .value {
+    color: #333;
+    margin: 5px 0;
+    width: 50%;
 }
 
 @media (max-width: 600px) {
