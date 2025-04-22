@@ -1,8 +1,10 @@
-import { fetchJSONData } from './utils/json.js';
+import { fetchJSONData } from '../utils/json.js';
+
+import { LineChart } from '../utils/graphic.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     const CONFIG = {
-        jsonApiUrl: 'https://utility.arpa.piemonte.it/api_realtime/data_pie?station_code=131&page=1&page_size=48',
+        jsonApiUrl: 'https://utility.arpa.piemonte.it/api_realtime/data_pie?station_code=131&page=1&page_size=100',
         corsProxyUrls: [
             'https://api.allorigins.win/raw?url=',
             'https://corsproxy.io/?',
@@ -82,21 +84,20 @@ document.addEventListener('DOMContentLoaded', function () {
             let icon = ''; // Icona predefinita
             let thresholdMessage = '';
 
-            // Logica per colorare in base ai livelli
             if (hydrometric_level > danger_threshold) {
-                levelColor = 'red'; // Pericolo
+                levelColor = 'red';
                 icon = '⚠️';
                 thresholdMessage = 'ATTENZIONE: supera il livello di pericolo';
             } else if (hydrometric_level > guard_threshold) {
-                levelColor = 'orange'; // Allerta
+                levelColor = 'orange';
                 icon = '⚠️';
                 thresholdMessage = 'ALLERTA: supera il livello di guardia';
             } else if (hydrometric_level > threshold_level) {
-                levelColor = 'blue'; // Info
+                levelColor = 'blue';
                 icon = 'ℹ️';
                 thresholdMessage = 'Sotto il livello di guardia';
             } else {
-                levelColor = 'black'; // Normale
+                levelColor = 'black';
                 icon = '✅';
                 thresholdMessage = 'Normale';
             }
@@ -110,81 +111,46 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         table.appendChild(tbody);
-
-        targetElement.innerHTML = ''; // Pulisce la tabella esistente
+        targetElement.innerHTML = '';
         targetElement.appendChild(table);
     }
 
     function drawHydroGraph(data) {
         const canvas = document.getElementById('hydroChart');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.moveTo(50, 10);
-        ctx.lineTo(50, canvas.height - 30);
-        ctx.stroke();
-
+        if (!canvas) return;
     
-        const padding = 50;
-        const width = canvas.width - padding * 2;
-        const height = canvas.height - padding * 2;
-    
-        // Filtra valori validi
         const levels = data.map(d => parseFloat(d.hydrometric_level)).filter(n => !isNaN(n));
-        const maxLevel = Math.max(danger_threshold, ...levels);
-        const minLevel = Math.min(...levels);
-        const scaleY = height / (maxLevel - minLevel);
-        const stepX = width / (levels.length - 1);
+        const labels = data.map(d => new Date(d.date).getHours().toString().padStart(2, '0'));
     
-        const points = levels.map((level, i) => ({
-            x: padding + i * stepX,
-            y: canvas.height - padding - (level - minLevel) * scaleY
-        }));
-
-        // Disegna tacche ed etichette sull'asse Y
-        const step = 0.5; // passo per le tacche sull’asse Y
-        ctx.fillStyle = '#333';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'right';
-
-        for (let y = Math.ceil(minLevel); y <= Math.floor(maxLevel); y += step) {
-            const yPos = canvas.height - 30 - ((y - minLevel) / (maxLevel - minLevel)) * (canvas.height - 40);
-            
-            // linea della tacca
-            ctx.beginPath();
-            ctx.moveTo(45, yPos);
-            ctx.lineTo(50, yPos);
-            ctx.stroke();
-
-            // testo del valore numerico
-            ctx.fillText(y.toFixed(1), 40, yPos + 4);
-        }
-
-    
-        // Disegna linea livello idrometrico
-        ctx.beginPath();
-        ctx.strokeStyle = 'deepskyblue';
-        ctx.lineWidth = 2;
-        ctx.moveTo(points[0].x, points[0].y);
-        points.forEach(p => ctx.lineTo(p.x, p.y));
-        ctx.stroke();
-    
-        // Disegna linee soglia
-        const drawThreshold = (value, color) => {
-            const y = canvas.height - padding - (value - minLevel) * scaleY;
-            ctx.beginPath();
-            ctx.setLineDash([5, 5]);
-            ctx.strokeStyle = color;
-            ctx.moveTo(padding, y);
-            ctx.lineTo(canvas.width - padding, y);
-            ctx.stroke();
-            ctx.setLineDash([]);
+        // Aggiungi le linee dei threshold
+        const thresholdLevels = {
+            threshold_level: threshold_level,
+            guard_threshold: guard_threshold,
+            danger_threshold: danger_threshold
         };
     
-        drawThreshold(threshold_level, 'green');
-        drawThreshold(guard_threshold, 'orange');
-        drawThreshold(danger_threshold, 'red');
-    }    
+        const thresholdData = {
+            threshold_level: Array(levels.length).fill(thresholdLevels.threshold_level),
+            guard_threshold: Array(levels.length).fill(thresholdLevels.guard_threshold),
+            danger_threshold: Array(levels.length).fill(thresholdLevels.danger_threshold)
+        };
+    
+        const chart = new LineChart({
+            id: 'hydroChart',
+            data: levels,
+            labels: labels,
+            colors: ['deepskyblue'],
+            tooltips: true,
+            threshold_level: threshold_level,
+            guard_threshold: guard_threshold,
+            danger_threshold: danger_threshold,
+            additionalData: thresholdData,
+        });
+    
+        chart.draw();
+    }
+    
+    
 
     fetchWithRetry();
 });

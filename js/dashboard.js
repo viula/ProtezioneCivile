@@ -1,4 +1,4 @@
-import { fetchXMLData } from './utils/xml.js';
+import { fetchXMLData } from '../utils/xml.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     const CONFIG = {

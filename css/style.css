@@ -1813,3 +1813,13 @@ footer {
     visibility: visible;
     opacity: 1;
   }
+
+  #tooltip {
+    position: absolute;
+    background-color: #f39c12;
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+    pointer-events: none;
+    display: none;
+}
