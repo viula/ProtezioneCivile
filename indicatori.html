@@ -12,6 +12,8 @@
     <nav class="main-nav">
         <ul>
             <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="#"><i class="fas fa-tachometer-alt"></i> Indicator</a></li>
+            <li><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
             <li><a href="credits.html"><i class="fas fa-user"></i> Credits</a></li>
         </ul>
     </nav>
@@ -20,7 +22,10 @@
         <div class="widget-header">
             <h1>Dati Stazione ARPA POIRINO BANNA (131)</h1>
         </div>
-        <div class="table" id="json-table-container">Caricamento dati...</div>
+        <div id="threshold-level"></div>
+        <div class="widget-content">
+            <div class="table" id="json-table-container">Caricamento dati...</div>
+        </div>
         <div class="widget-footer">
             <button class="info-button" onclick="toggleLegendModal()">
                 <i class="fas fa-info-circle"></i> Legenda

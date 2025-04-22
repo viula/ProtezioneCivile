@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const danger_threshold = 5.8;
 
     const targetElement = document.getElementById('json-table-container');
+    const thresholdElement = document.getElementById('threshold-level');
+
+    thresholdElement.innerHTML = `<div class="card">Livello soglia: ${threshold_level} m<br>` +
+        `Livello di guardia: ${guard_threshold} m<br>` +
+        `Livello di pericolo: ${danger_threshold} m</div>`;
 
     const paramList = [
         'date',
@@ -58,16 +63,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderTable(data) {
         const table = document.createElement('table');
-        table.classList.add('json-table');
+        table.classList.add('table-responsive');
 
         const thead = document.createElement('thead');
         thead.innerHTML = `
             <tr>
                 <th>Data</th>
+                <th>Ora del rilevamento</th>
                 <th>Livello Idrometrico</th>
-                <th>Livello Soglia</th>
-                <th>Threshold di Guardia</th>
-                <th>Threshold di Pericolo</th>
+                <th>Nota</th>
             </tr>
         `;
         table.appendChild(thead);
@@ -81,19 +85,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Logica per colorare in base ai livelli
             if (hydrometric_level > danger_threshold) {
-                levelColor = 'white'; // Pericolo
+                levelColor = 'red'; // Pericolo
                 icon = '⚠️';
-                thresholdMessage = 'Supera il threshold di pericolo';
+                thresholdMessage = 'ATTENZIONE: supera il livello di pericolo';
             } else if (hydrometric_level > guard_threshold) {
-                levelColor = 'white'; // Allerta
+                levelColor = 'orange'; // Allerta
                 icon = '⚠️';
-                thresholdMessage = 'Supera il threshold di guardia';
+                thresholdMessage = 'ALLERTA: supera il livello di guardia';
             } else if (hydrometric_level > threshold_level) {
-                levelColor = 'white'; // Info
+                levelColor = 'blue'; // Info
                 icon = 'ℹ️';
-                thresholdMessage = 'Sotto il threshold di guardia';
+                thresholdMessage = 'Sotto il livello di guardia';
             } else {
-                levelColor = 'white'; // Normale
+                levelColor = 'black'; // Normale
                 icon = '✅';
                 thresholdMessage = 'Normale';
             }
@@ -101,10 +105,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${new Date(date).toLocaleDateString()}</td>
-                <td style="background-color: ${levelColor};">${hydrometric_level} ${icon}</td>
-                <td>${threshold_level}</td>
-                <td>${guard_threshold}</td>
-                <td>${danger_threshold}</td>
+                <td>${new Date(date).getHours()}</td>
+                <td style="color: ${levelColor};">${icon} ${hydrometric_level}</td>
+                <td>${thresholdMessage}</td>
             `;
             tbody.appendChild(tr);
         });
